@@ -1,0 +1,8 @@
+<!-- Заглушка виджета для тестов: показывает chat_data как есть. Не для продакшена. -->
+<pre id="s">…</pre>
+<script>
+const W = window.TelegramWidget;
+function render() { document.getElementById('s').textContent = W.chatData || 'нет данных'; }
+W.onEvent('chatDataChanged', render);
+render();
+</script>

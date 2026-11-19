@@ -1,0 +1,34 @@
+# systemd unit. Установка (пример для /opt/svitlo, пользователь svitlo):
+#   sudo useradd --system --home /opt/svitlo svitlo
+#   sudo mkdir -p /opt/svitlo && sudo cp -r svitlo widgets deploy requirements.txt .env.example /opt/svitlo/   # из каталога проекта
+#   sudo mkdir -p /opt/svitlo/data && sudo chown -R svitlo: /opt/svitlo && cd /opt/svitlo
+#   sudo -u svitlo python3 -m venv .venv && sudo -u svitlo .venv/bin/pip install -r requirements.txt
+#   sudo -u svitlo cp .env.example .env && sudo chmod 600 .env   # заполнить: BOT_TOKEN, ALLOWED_IDS, BATTERY_KWH
+#   sudo cp deploy/svitlo.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#   sudo systemctl enable --now svitlo && journalctl -u svitlo -f
+# data/ должна существовать до старта: при ProtectSystem=strict писать можно только туда (sqlite).
+# Отчёт о точности прогноза: cd /opt/svitlo && sudo -u svitlo .venv/bin/python -m svitlo accuracy
+[Unit]
+Description=svitlo — Telegram-бот «есть ли свет» (Deye)
+# Если логгер виден серверу через WireGuard-туннель, добавьте его юнит (например, wg-quick@wg0.service)
+# в After= и Wants= (не Requires: при падении туннеля бот продолжит работать и покажет «нет связи»).
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=svitlo
+WorkingDirectory=/opt/svitlo
+ExecStart=/opt/svitlo/.venv/bin/python -m svitlo
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/svitlo/data
+MemoryMax=300M
+
+[Install]
+WantedBy=multi-user.target

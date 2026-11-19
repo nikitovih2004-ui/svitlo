@@ -1,0 +1,49 @@
+<style>
+body{margin:0;background:#f4efe5;color:#1a1814;font:13px/1.35 system-ui,sans-serif;--a:#e2452c;--m:#8a8273;--l:#dcd4c4}
+.f{background:#141310;color:#f4efe5;--a:#ff5a3c;--m:#8d877b;--l:#2e2b26}
+#w{padding:16px 18px 15px}
+.q{font:10px/1.4 ui-monospace,monospace;letter-spacing:1px;text-transform:uppercase;color:var(--m)}
+h1{margin:8px 0 4px;font:400 48px/1 ui-serif,serif;letter-spacing:-1.5px}
+em{font-style:normal;color:var(--a)}
+.s{font:italic 16px/1.3 ui-serif,serif;color:var(--m)}
+.g{display:flex;gap:18px;margin:14px 0;padding:12px 0 11px;border-top:1px solid var(--l);border-bottom:1px solid var(--l)}
+.g div{flex:1}
+.g b{display:block;font:400 34px/1.15 ui-serif,serif;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.b{position:relative;height:18px;background:var(--l)}
+.b i{position:absolute;top:0;bottom:0;background:var(--a)}
+.b u{position:absolute;top:-5px;bottom:-5px;width:2px;margin-left:-1px;background:currentColor}
+.h{display:flex;justify-content:space-between;margin-top:7px}
+.x{padding:9px 14px;font:italic 15px/1.3 ui-serif,serif}
+.x span{color:var(--m)}
+</style>
+<div id="w"></div>
+<script>
+(()=>{const W=window.TelegramWidget,E=document.getElementById('w'),
+P=n=>(n<10?'0':'')+n,
+M=m=>(m=(m%1440+1440)%1440,P(m/60|0)+':'+P(m%60|0)),
+D=s=>(s=s/60|0,s<60?s+' мин':(s/60|0)+' ч '+P(s%60)+' мин'),
+A=s=>s<5400?(s/60|0)+' мин':Math.round(s/3600)+' ч';
+function R(){let d;try{d=JSON.parse(W.chatData)}catch(e){}
+if(!d)return;
+const t=Date.now()/1e3,n=(t-d.d)/60,T=u=>M((u-d.d)/60),g=d.g,o=d.o||[];
+document.body.className=g?'':'f';
+E.style.padding=d.x?0:'';
+if(d.x){E.innerHTML=`<div class="x">${g?'Свет был':'Света не было'} ${T(d.s)}–${T(d.x)}<span> — ${D(d.x-d.s)}</span></div>`;return}
+const cur=o.find(v=>v[0]<=n&&n<v[1]),nx=o.find(v=>v[0]>n);
+let q,b,s,h='';
+if(g){if(cur)q='по графику нет',b='до '+M(cur[1]),s='свет вне графика';
+else if(nx)q='отключат',b=M(nx[0]),s='через '+D((nx[0]-n)*60);
+else q='отключений',b='нет',s=d.w?'по графику':'график на завтра ждём'}
+else if(cur)q='включат',b=M(cur[1]),s='через '+D((cur[1]-n)*60);
+else q='вне графика',b=D(t-d.s),s='без света';
+for(const v of o)if(v[0]<1440){const z=Math.min(v[1],1440);
+h+=`<i style="left:${v[0]/14.4}%;width:${(z-v[0])/14.4}%${z<=n?';background:var(--m)':''}"></i>`}
+E.innerHTML=`<div class="q">${g?'сеть '+d.u+' В':'на батарее'} · нагрузка ${d.l} Вт</div>
+<h1>${g?'Свет есть':'Света нет'}<em>.</em></h1>
+<div class="s">${g?'С '+T(d.s)+'.'+(d.p?' До этого не было '+D(d.p)+'.':''):'С '+T(d.s)+' — уже '+D(t-d.s)+'.'}</div>
+<div class="g"><div><div class="q">${q}</div><b>${b}</b>${s}</div>
+<div><div class="q">батарея</div><b>${d.c}%</b>${d.e>t?d.b>0?'хватит на ~'+A(d.e-t):'полная к '+T(d.e):d.c>98?'заряжена':'в покое'}</div></div>
+<div class="b">${h}<u style="left:${n/14.4}%"></u></div>
+<div class="h q"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>`}
+W.onEvent('chatDataChanged',R);setInterval(R,2e4);R()})()
+</script>
